@@ -130,7 +130,16 @@ class InferenceLlamaVllm:
         
         return results
 
-    
+    def generate_timestamps(self, text, synthesized_audio):
+        words = text.split()
+        num_words = len(words)
+        duration = len(synthesized_audio) / 16000  # Assuming 16kHz sample rate
+        timestamps = []
+        for i, word in enumerate(words):
+            start_time = (i / num_words) * duration
+            end_time = ((i + 1) / num_words) * duration
+            timestamps.append((word, start_time, end_time))
+        return timestamps
 
 
 class InferenceLlamaHf:
@@ -175,3 +184,14 @@ class InferenceLlamaHf:
         results = await asyncio.gather(*tasks, return_exceptions=True)
         
         return results
+
+    def generate_timestamps(self, text, synthesized_audio):
+        words = text.split()
+        num_words = len(words)
+        duration = len(synthesized_audio) / 16000  # Assuming 16kHz sample rate
+        timestamps = []
+        for i, word in enumerate(words):
+            start_time = (i / num_words) * duration
+            end_time = ((i + 1) / num_words) * duration
+            timestamps.append((word, start_time, end_time))
+        return timestamps

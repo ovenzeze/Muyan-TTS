@@ -75,7 +75,25 @@ class Inference():
         clean_text_inf_normed_text(prompt_text, 'en', 'v1') 
         logging.info("init vits finish")
 
+    def generate_timestamps(self, text, synthesized_audio):
+        words = text.split()
+        num_words = len(words)
+        duration = len(synthesized_audio) / 16000  # Assuming 16kHz sample rate
+        timestamps = []
+        for i, word in enumerate(words):
+            start_time = (i / num_words) * duration
+            end_time = ((i + 1) / num_words) * duration
+            timestamps.append((word, start_time, end_time))
+        return timestamps
 
-    
-    
-    
+    async def generate_with_timestamps(self, ref_wav_path, prompt_text, text, temperature=1.0, 
+                 repetition_penalty=1.0, cut_punc=None,
+                 speed=1.0, scaling_factor=1.0):
+        batch_prompts = self._process_prompt(ref_wav_path, prompt_text, text)
+        
+        results = await self.llama.cal_tts(batch_prompts, temperature, repetition_penalty)
+        pred_semantic = "".join(results)
+        wavs = self.sovits_processor.handle(pred_semantic, ref_wav_path, prompt_text, 'en', text, 'en', cut_punc, speed, [], scaling_factor)
+        synthesized_audio = b''.join([chunk for chunk in wavs])
+        timestamps = self.generate_timestamps(text, synthesized_audio)
+        return synthesized_audio, timestamps
