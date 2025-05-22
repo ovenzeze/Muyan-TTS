@@ -205,3 +205,12 @@ We borrow a lot of code from [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Fa
   year={2025}
 }
 ```
+
+## Tool Capabilities in AI Podcast Production
+
+Muyan-TTS can replace some processes in AI podcast production, such as TTS synthesis. However, it does not handle podcast editing, mixing, or distribution processes.
+
+## HTTPS API Implementation for Podcast Production
+
+We have implemented an HTTPS API that covers various stages of podcast production. The service is responsible for synthesizing and timestamping the requested audio and voice, and returning the final audio data and timestamp file. You can refer to the implementation of ElevenLabs TimingApi for more details.
+
