@@ -1,5 +1,9 @@
 {
   "tasks": {
     "build": "make build"
+  },
+  "containerEnv": {
+    "TTS_PORT": "8020",
+    "is_half": "True"
   }
 }
