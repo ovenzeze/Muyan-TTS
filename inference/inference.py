@@ -62,12 +62,18 @@ class Inference():
     async def generate(self, ref_wav_path, prompt_text, text, temperature=1.0, 
                  repetition_penalty=1.0, cut_punc=None,
                  speed=1.0, scaling_factor=1.0):
-        batch_prompts = self._process_prompt(ref_wav_path, prompt_text, text)
-        
-        results = await self.llama.cal_tts(batch_prompts, temperature, repetition_penalty)
-        pred_semantic = "".join(results)
-        wavs = self.sovits_processor.handle(pred_semantic, ref_wav_path, prompt_text, 'en', text, 'en', cut_punc, speed, [], scaling_factor)
-        return wavs
+        try:
+            logging.info(f"Generating TTS for text: {text}")
+            batch_prompts = self._process_prompt(ref_wav_path, prompt_text, text)
+            
+            results = await self.llama.cal_tts(batch_prompts, temperature, repetition_penalty)
+            pred_semantic = "".join(results)
+            wavs = self.sovits_processor.handle(pred_semantic, ref_wav_path, prompt_text, 'en', text, 'en', cut_punc, speed, [], scaling_factor)
+            logging.info("TTS generation successful")
+            return wavs
+        except Exception as e:
+            logging.error(f"Error during TTS generation: {str(e)}")
+            raise
 
     def init_vits(self, ref_wav_path, prompt_text):
         logging.info("init vits...")
@@ -89,11 +95,17 @@ class Inference():
     async def generate_with_timestamps(self, ref_wav_path, prompt_text, text, temperature=1.0, 
                  repetition_penalty=1.0, cut_punc=None,
                  speed=1.0, scaling_factor=1.0):
-        batch_prompts = self._process_prompt(ref_wav_path, prompt_text, text)
-        
-        results = await self.llama.cal_tts(batch_prompts, temperature, repetition_penalty)
-        pred_semantic = "".join(results)
-        wavs = self.sovits_processor.handle(pred_semantic, ref_wav_path, prompt_text, 'en', text, 'en', cut_punc, speed, [], scaling_factor)
-        synthesized_audio = b''.join([chunk for chunk in wavs])
-        timestamps = self.generate_timestamps(text, synthesized_audio)
-        return synthesized_audio, timestamps
+        try:
+            logging.info(f"Generating TTS with timestamps for text: {text}")
+            batch_prompts = self._process_prompt(ref_wav_path, prompt_text, text)
+            
+            results = await self.llama.cal_tts(batch_prompts, temperature, repetition_penalty)
+            pred_semantic = "".join(results)
+            wavs = self.sovits_processor.handle(pred_semantic, ref_wav_path, prompt_text, 'en', text, 'en', cut_punc, speed, [], scaling_factor)
+            synthesized_audio = b''.join([chunk for chunk in wavs])
+            timestamps = self.generate_timestamps(text, synthesized_audio)
+            logging.info("TTS with timestamps generation successful")
+            return synthesized_audio, timestamps
+        except Exception as e:
+            logging.error(f"Error during TTS with timestamps generation: {str(e)}")
+            raise
