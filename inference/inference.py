@@ -81,15 +81,50 @@ class Inference():
         clean_text_inf_normed_text(prompt_text, 'en', 'v1') 
         logging.info("init vits finish")
 
-    def generate_timestamps(self, text, synthesized_audio):
+    def generate_timestamps(self, text, synthesized_audio, sample_rate=16000):
+        """
+        使用基于字符的持续时间估计生成更准确的词级时间戳。
+        
+        参数:
+            text (str): 输入文本
+            synthesized_audio (bytes): 合成的音频数据
+            sample_rate (int): 音频采样率
+            
+        返回:
+            list: 包含词级时间戳的列表
+        """
         words = text.split()
-        num_words = len(words)
-        duration = len(synthesized_audio) / 16000  # Assuming 16kHz sample rate
+        if not words:
+            return []
+            
+        # 计算总持续时间
+        duration = len(synthesized_audio) / sample_rate
+        
+        # 计算基于字符的持续时间
+        total_chars = sum(len(word) for word in words)
+        
+        # 在单词之间添加空格（最后一个单词除外）
+        total_chars += len(words) - 1
+        
         timestamps = []
+        current_time = 0
+        
         for i, word in enumerate(words):
-            start_time = (i / num_words) * duration
-            end_time = ((i + 1) / num_words) * duration
-            timestamps.append((word, start_time, end_time))
+            # 根据字符计数计算单词持续时间
+            # 为单词后的空格添加1（最后一个单词除外）
+            char_count = len(word) + (0 if i == len(words) - 1 else 1)
+            word_duration = (char_count / total_chars) * duration
+            
+            # 添加时间戳
+            timestamps.append({
+                "word": word,
+                "start_time": round(current_time, 3),
+                "end_time": round(current_time + word_duration, 3)
+            })
+            
+            # 更新当前时间
+            current_time += word_duration
+        
         return timestamps
 
     async def generate_with_timestamps(self, ref_wav_path, prompt_text, text, temperature=1.0, 
